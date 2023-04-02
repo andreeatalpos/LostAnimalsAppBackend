@@ -30,6 +30,7 @@ public class UserService {
             Pattern.compile("^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$", Pattern.CASE_INSENSITIVE);
     private static final Pattern VALID_PASSWORD_REGEX =
             Pattern.compile("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$", Pattern.CASE_INSENSITIVE);
+    private static final Pattern VALID_RO_PHONE_NUMBER = Pattern.compile("^(07)(0[1-9]|[2-8][0-9]|9[0-1])(\\d{6})$");
 
     @Transactional
     public UserDTO createUser(final AuthDTO authUser) {
@@ -39,6 +40,7 @@ public class UserService {
                     .firstName(authUser.getFirstName())
                     .lastName(authUser.getLastName())
                     .email(authUser.getEmail())
+                    .phoneNumber(authUser.getPhoneNumber())
                     .password(passwordEncoder.encode(authUser.getPassword()))
                     .role(Role.USER)
                     .build();
@@ -71,6 +73,9 @@ public class UserService {
         }
         if (user.getPassword() == null || user.getPassword().isBlank() ||
                 !user.getPassword().equals(user.getConfirmedPassword()) || !validate(user.getPassword(), VALID_PASSWORD_REGEX)) {
+            return false;
+        }
+        if (user.getPhoneNumber() == null || !validate(user.getPhoneNumber().toString(), VALID_RO_PHONE_NUMBER)) {
             return false;
         }
         if (user.getRole() == null || !Arrays.stream(Role.values()).toList().contains(user.getRole())) {
