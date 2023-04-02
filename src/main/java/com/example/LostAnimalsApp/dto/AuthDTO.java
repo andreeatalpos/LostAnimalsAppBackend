@@ -13,6 +13,7 @@ public class AuthDTO {
     private String firstName;
     private String lastName;
     private String email;
+    private Long phoneNumber;
     private String password;
     private String confirmedPassword;
     private Role role;
