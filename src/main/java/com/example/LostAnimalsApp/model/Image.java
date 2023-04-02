@@ -25,7 +25,7 @@ public class Image {
     @Column(nullable = false)
     private byte[] imageData;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String fileName;
 
     @Column(nullable = false)
