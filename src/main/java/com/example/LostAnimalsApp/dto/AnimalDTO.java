@@ -10,6 +10,7 @@ import lombok.*;
 @Getter
 @Setter
 public class AnimalDTO {
+    private Long animalId;
     private String name;
     private String species;
     private String breed;

@@ -26,7 +26,7 @@ public class AnimalServiceImpl implements AnimalService {
     private final ModelMapper modelMapper;
 
     @Override
-    public AnimalDTO createAnimal(AnimalDTO animalDTO) {
+    public AnimalDTO createAnimal(final AnimalDTO animalDTO) {
         if (checkFields(animalDTO)) {
             var animal = Animal.builder()
                     .name(animalDTO.getName())
@@ -44,7 +44,7 @@ public class AnimalServiceImpl implements AnimalService {
     }
 
     @Override
-    public AnimalDTO updateAnimal(AnimalDTO animalDTO) {
+    public AnimalDTO updateAnimal(final AnimalDTO animalDTO) {
         Animal animalToUpdate = animalRepository.findAnimalByImageFileName(animalDTO.getImage().getFileName()).orElse(null);
         if (animalToUpdate != null && checkFields(animalDTO)) {
             animalToUpdate = Animal.builder()
@@ -63,8 +63,13 @@ public class AnimalServiceImpl implements AnimalService {
     }
 
     @Override
-    public AnimalDTO deleteAnimal(Long animalId) {
-        return null; // TODO : rethink the delete param; should I send the id?? <-> animalDTO has id
+    public AnimalDTO deleteAnimal(final Long animalId) {
+        Animal animal = animalRepository.findById(animalId).orElse(null);
+        if (animal == null) {
+            throw new ResourceNotFoundException("The animal with the provided ID doesn't exists!");
+        }
+        animalRepository.delete(animal);
+        return modelMapper.map(animal, AnimalDTO.class); // TODO : rethink the delete param; should I send the id?? <-> animalDTO has id
     }
 
     @Override
@@ -77,8 +82,12 @@ public class AnimalServiceImpl implements AnimalService {
     }
 
     @Override
-    public AnimalDTO getAnimalById(Long animalId) {
-        return null;
+    public AnimalDTO getAnimalById(final Long animalId) {
+        Animal animal = animalRepository.findById(animalId).orElse(null);
+        if (animal == null) {
+            throw new ResourceNotFoundException("The animal with the provided ID doesn't exists!");
+        }
+        return modelMapper.map(animal, AnimalDTO.class);
     }
 
     private boolean checkFields(final AnimalDTO animalDTO) {

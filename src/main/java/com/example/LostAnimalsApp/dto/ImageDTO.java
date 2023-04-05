@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class ImageDTO {
+    private Long imageId;
     private byte[] imageData;
     private String fileName;
     private LocalDateTime uploadedAt;

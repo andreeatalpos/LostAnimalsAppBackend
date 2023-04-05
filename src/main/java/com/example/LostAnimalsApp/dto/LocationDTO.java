@@ -8,6 +8,7 @@ import lombok.*;
 @Getter
 @Setter
 public class LocationDTO {
+    private Long locationId;
     private String country;
     private String city;
     private String street;

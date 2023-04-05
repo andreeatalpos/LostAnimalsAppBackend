@@ -8,6 +8,7 @@ import lombok.*;
 @Getter
 @Setter
 public class ReportDTO {
+    private Long reportId;
     private String title;
     private String description;
     private UserDTO user;
