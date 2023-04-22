@@ -10,8 +10,7 @@ import lombok.*;
 @Setter
 public class AuthDTO {
     private String username;
-    private String firstName;
-    private String lastName;
+    private String fullName;
     private String email;
     private Long phoneNumber;
     private String password;

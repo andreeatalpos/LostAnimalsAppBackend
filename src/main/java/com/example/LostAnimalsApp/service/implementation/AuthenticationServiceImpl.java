@@ -29,6 +29,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var jwtToken = jwtServiceImpl.generateToken(modelMapper.map(user, User.class));
         return AuthenticationResponse.builder()
                 .token(jwtToken)
+                .userDTO(userServiceImpl.getUserByUsername(user.getUsername()))
                 .build();
     }
 
@@ -40,6 +41,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var jwtToken = jwtServiceImpl.generateToken(modelMapper.map(user, User.class));
         return AuthenticationResponse.builder()
                 .token(jwtToken)
+                .userDTO(userServiceImpl.getUserByUsername(loginDTO.getUsername()))
                 .build();
     }
 }

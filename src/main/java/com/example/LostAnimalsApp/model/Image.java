@@ -23,7 +23,7 @@ public class Image {
 
     @Lob
     @Column(nullable = false)
-    private byte[] imageData;
+    private Byte[] imageData;
 
     @Column(nullable = false, unique = true)
     private String fileName;

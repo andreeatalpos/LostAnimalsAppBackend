@@ -1,5 +1,6 @@
 package com.example.LostAnimalsApp.util;
 
+import com.example.LostAnimalsApp.dto.UserDTO;
 import lombok.*;
 
 @Builder
@@ -10,4 +11,5 @@ import lombok.*;
 public class AuthenticationResponse {
 
     private String token;
+    private UserDTO userDTO;
 }

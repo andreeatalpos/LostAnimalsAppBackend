@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserService {
             Pattern.compile("^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$", Pattern.CASE_INSENSITIVE);
     private static final Pattern VALID_PASSWORD_REGEX =
             Pattern.compile("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$", Pattern.CASE_INSENSITIVE);
-    private static final Pattern VALID_RO_PHONE_NUMBER = Pattern.compile("^(07)(0[1-9]|[2-8][0-9]|9[0-1])(\\d{6})$");
+    private static final Pattern VALID_RO_PHONE_NUMBER = Pattern.compile("^(407)(0[1-9]|[2-8][0-9]|9[0-1])(\\d{6})$");
 
     @Override
     @Transactional
@@ -38,8 +38,7 @@ public class UserServiceImpl implements UserService {
         if (checkFields(authUser)) {
             var user = User.builder()
                     .username(authUser.getUsername())
-                    .firstName(authUser.getFirstName())
-                    .lastName(authUser.getLastName())
+                    .fullName(authUser.getFullName())
                     .email(authUser.getEmail())
                     .phoneNumber(authUser.getPhoneNumber())
                     .password(passwordEncoder.encode(authUser.getPassword()))
@@ -70,8 +69,7 @@ public class UserServiceImpl implements UserService {
         if (checkFields(user)) {
             userToUpdate = User.builder()
                     .username(user.getUsername())
-                    .firstName(user.getFirstName())
-                    .lastName(user.getLastName())
+                    .fullName(user.getFullName())
                     .email(user.getEmail())
                     .phoneNumber(user.getPhoneNumber())
                     .password(passwordEncoder.encode(user.getPassword()))
@@ -90,17 +88,22 @@ public class UserServiceImpl implements UserService {
 
     private boolean checkFields(AuthDTO user) {
         if (user.getUsername() == null || user.getUsername().isBlank()) {
+            System.out.println("username");
             return false;
         }
         if (user.getEmail() == null || user.getEmail().isBlank() ||
                 !validate(user.getEmail(), VALID_EMAIL_ADDRESS_REGEX)) {
+            System.out.println("email");
             return false;
         }
         if (user.getPassword() == null || user.getPassword().isBlank() ||
                 !user.getPassword().equals(user.getConfirmedPassword()) || !validate(user.getPassword(), VALID_PASSWORD_REGEX)) {
+            System.out.println("password");
             return false;
         }
         if (user.getPhoneNumber() == null || !validate(user.getPhoneNumber().toString(), VALID_RO_PHONE_NUMBER)) {
+            System.out.println("number");
+
             return false;
         }
 //        if (user.getRole() == null || !Arrays.stream(Role.values()).toList().contains(user.getRole())) {
