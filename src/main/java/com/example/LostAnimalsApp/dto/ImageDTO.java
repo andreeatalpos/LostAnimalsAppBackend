@@ -1,6 +1,7 @@
 package com.example.LostAnimalsApp.dto;
 
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -11,9 +12,6 @@ import java.time.LocalDateTime;
 @Setter
 public class ImageDTO {
     private Long imageId;
-    private byte[] imageData;
-    private String fileName;
-    private LocalDateTime uploadedAt;
     private String description;
-    private AnimalDTO animal;
+    private MultipartFile file;
 }

@@ -3,8 +3,6 @@ package com.example.LostAnimalsApp.service.implementation;
 import com.example.LostAnimalsApp.dto.AnimalDTO;
 import com.example.LostAnimalsApp.exception.ResourceNotFoundException;
 import com.example.LostAnimalsApp.model.Animal;
-import com.example.LostAnimalsApp.model.Image;
-import com.example.LostAnimalsApp.model.User;
 import com.example.LostAnimalsApp.repository.AnimalRepository;
 import com.example.LostAnimalsApp.repository.ImageRepository;
 import com.example.LostAnimalsApp.repository.UserRepository;
@@ -14,7 +12,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,8 +31,8 @@ public class AnimalServiceImpl implements AnimalService {
                     .color(animalDTO.getColor())
                     .species(animalDTO.getSpecies())
                     .isFound(animalDTO.getIsFound())
-                    .image(imageRepository.findImageByFileName(animalDTO.getImage().getFileName()).orElse(null))
-                    .user(userRepository.findByUsername(animalDTO.getUser().getUsername()).orElse(null))
+                    .image(imageRepository.findImageByFileName(animalDTO.getFileName()).orElse(null))
+                    .user(userRepository.findByUsername(animalDTO.getUsername()).orElse(null))
                     .age(animalDTO.getAge())
                     .build();
             animalRepository.save(animal);
@@ -45,7 +42,7 @@ public class AnimalServiceImpl implements AnimalService {
 
     @Override
     public AnimalDTO updateAnimal(final AnimalDTO animalDTO) {
-        Animal animalToUpdate = animalRepository.findAnimalByImageFileName(animalDTO.getImage().getFileName()).orElse(null);
+        Animal animalToUpdate = animalRepository.findAnimalByImageFileName(animalDTO.getFileName()).orElse(null);
         if (animalToUpdate != null && checkFields(animalDTO)) {
             animalToUpdate = Animal.builder()
                     .name(animalDTO.getName())
@@ -53,8 +50,8 @@ public class AnimalServiceImpl implements AnimalService {
                     .color(animalDTO.getColor())
                     .species(animalDTO.getSpecies())
                     .isFound(animalDTO.getIsFound())
-                    .image(imageRepository.findImageByFileName(animalDTO.getImage().getFileName()).orElse(null))
-                    .user(userRepository.findByUsername(animalDTO.getUser().getUsername()).orElse(null))
+                    .image(imageRepository.findImageByFileName(animalDTO.getFileName()).orElse(null))
+                    .user(userRepository.findByUsername(animalDTO.getUsername()).orElse(null))
                     .age(animalDTO.getAge())
                     .build();
             animalRepository.save(animalToUpdate);
@@ -106,10 +103,10 @@ public class AnimalServiceImpl implements AnimalService {
         if (animalDTO.getIsFound() == null) {
             return false;
         }
-        if (animalDTO.getImage() == null || imageRepository.findImageByFileName(animalDTO.getImage().getFileName()).isEmpty()) {
+        if (animalDTO.getFileName() == null || imageRepository.findImageByFileName(animalDTO.getFileName()).isEmpty()) {
             return false;
         }
-        if (animalDTO.getUser() == null || userRepository.findByUsername(animalDTO.getUser().getUsername()).isEmpty()) {
+        if (animalDTO.getUsername() == null || userRepository.findByUsername(animalDTO.getUsername()).isEmpty()) {
             return false;
         }
 

@@ -1,6 +1,5 @@
-package com.example.LostAnimalsApp.config;
+package com.example.LostAnimalsApp.controller.config;
 
-import jakarta.servlet.Filter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

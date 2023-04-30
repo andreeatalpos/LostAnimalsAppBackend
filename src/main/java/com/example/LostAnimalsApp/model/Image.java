@@ -2,6 +2,7 @@ package com.example.LostAnimalsApp.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.sql.Timestamp;
@@ -21,10 +22,6 @@ public class Image {
     @Column(name="image_id")
     private Long imageId;
 
-    @Lob
-    @Column(nullable = false)
-    private Byte[] imageData;
-
     @Column(nullable = false, unique = true)
     private String fileName;
 
@@ -34,8 +31,7 @@ public class Image {
     @Column
     private String description;
 
-    @OneToOne
-    @JoinColumn(name = "animal_id")
-    private Animal animal;
+    @Transient
+    private MultipartFile file;
 
 }

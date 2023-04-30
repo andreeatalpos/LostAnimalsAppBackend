@@ -1,4 +1,4 @@
-package com.example.LostAnimalsApp.config;
+package com.example.LostAnimalsApp.controller.config;
 
 import com.example.LostAnimalsApp.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

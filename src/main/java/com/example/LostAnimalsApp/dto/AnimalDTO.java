@@ -1,7 +1,5 @@
 package com.example.LostAnimalsApp.dto;
 
-import com.example.LostAnimalsApp.model.Image;
-import com.example.LostAnimalsApp.model.User;
 import lombok.*;
 
 @Builder
@@ -17,6 +15,6 @@ public class AnimalDTO {
     private String color;
     private Integer age;
     private Boolean isFound;
-    private UserDTO user;
-    private ImageDTO image;
+    private String username;
+    private String fileName;
 }
