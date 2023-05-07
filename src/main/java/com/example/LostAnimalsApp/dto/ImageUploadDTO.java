@@ -8,8 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor
 @Getter
 @Setter
-public class ImageDTO {
-	private Long imageId;
-	private String description;
-	private byte[] file;
+public class ImageUploadDTO {
+    private Long imageId;
+    private String description;
+    private MultipartFile file;
 }

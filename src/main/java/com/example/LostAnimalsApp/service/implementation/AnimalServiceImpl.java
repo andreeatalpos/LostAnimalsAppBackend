@@ -1,8 +1,11 @@
 package com.example.LostAnimalsApp.service.implementation;
 
 import com.example.LostAnimalsApp.dto.AnimalDTO;
+import com.example.LostAnimalsApp.dto.ImageDTO;
+import com.example.LostAnimalsApp.dto.ImageUploadDTO;
 import com.example.LostAnimalsApp.exception.ResourceNotFoundException;
 import com.example.LostAnimalsApp.model.Animal;
+import com.example.LostAnimalsApp.model.Image;
 import com.example.LostAnimalsApp.repository.AnimalRepository;
 import com.example.LostAnimalsApp.repository.ImageRepository;
 import com.example.LostAnimalsApp.repository.UserRepository;
@@ -10,7 +13,12 @@ import com.example.LostAnimalsApp.service.AnimalService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,7 +34,8 @@ public class AnimalServiceImpl implements AnimalService {
     public AnimalDTO createAnimal(final AnimalDTO animalDTO) {
         if (checkFields(animalDTO)) {
             var animal = Animal.builder()
-                    .name(animalDTO.getName())
+                    .name(animalDTO.getAnimalName())
+                    .animalInfo(animalDTO.getAnimalInfo())
                     .breed(animalDTO.getBreed())
                     .color(animalDTO.getColor())
                     .species(animalDTO.getSpecies())
@@ -45,7 +54,8 @@ public class AnimalServiceImpl implements AnimalService {
         Animal animalToUpdate = animalRepository.findAnimalByImageFileName(animalDTO.getFileName()).orElse(null);
         if (animalToUpdate != null && checkFields(animalDTO)) {
             animalToUpdate = Animal.builder()
-                    .name(animalDTO.getName())
+                    .name(animalDTO.getAnimalName())
+                    .animalInfo(animalToUpdate.getAnimalInfo())
                     .breed(animalDTO.getBreed())
                     .color(animalDTO.getColor())
                     .species(animalDTO.getSpecies())
@@ -87,8 +97,28 @@ public class AnimalServiceImpl implements AnimalService {
         return modelMapper.map(animal, AnimalDTO.class);
     }
 
+    @Override
+    public List<ImageDTO> getLostOrFoundAnimalsImages(boolean isFound) throws IOException {
+        List<ImageDTO> imageDTOList = new ArrayList<>();
+        final List<Animal> foundAnimals = animalRepository.findAllByIsFound(isFound);
+        for (Animal animal : foundAnimals) {
+            Image image = animal.getImage();
+            if (image != null) {
+                ImageDTO imageDTO = ImageDTO.builder()
+                        .imageId(image.getImageId())
+                        .description(image.getDescription())
+                        .build();
+                byte[] imageData = Files.readAllBytes(Paths.get(image.getFileName()));
+
+                imageDTO.setFile(imageData);
+                imageDTOList.add(imageDTO);
+            }
+        }
+        return imageDTOList;
+    }
+
     private boolean checkFields(final AnimalDTO animalDTO) {
-        if (animalDTO.getName() == null || animalDTO.getName().isBlank()) {
+        if (animalDTO.getAnimalInfo() == null || animalDTO.getAnimalInfo().isBlank()) {
             return false;
         }
         if (animalDTO.getBreed() == null || animalDTO.getBreed().isBlank()) {
@@ -103,9 +133,9 @@ public class AnimalServiceImpl implements AnimalService {
         if (animalDTO.getIsFound() == null) {
             return false;
         }
-        if (animalDTO.getFileName() == null || imageRepository.findImageByFileName(animalDTO.getFileName()).isEmpty()) {
-            return false;
-        }
+//        if (animalDTO.getFileName() == null || imageRepository.findImageByFileName(animalDTO.getFileName()).isEmpty()) {
+//            return false;
+//        }
         if (animalDTO.getUsername() == null || userRepository.findByUsername(animalDTO.getUsername()).isEmpty()) {
             return false;
         }

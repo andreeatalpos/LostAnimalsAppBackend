@@ -1,16 +1,15 @@
 package com.example.LostAnimalsApp.service;
 
-import com.example.LostAnimalsApp.dto.ImageDTO;
+import com.example.LostAnimalsApp.dto.ImageUploadDTO;
 
 import java.io.IOException;
 import java.util.List;
 
 public interface ImageService {
-    ImageDTO createImage(final ImageDTO imageDTO) throws IOException;
-    ImageDTO updateImage(final ImageDTO imageDTO);
-    List<ImageDTO> getAllImages();
-    List<ImageDTO> getAllLostAnimalsImages();
-    List<ImageDTO> getAllFoundAnimalsImages();
-    ImageDTO getImageById(final Long imageId);
-    ImageDTO deleteImage(final Long imageId);
+    String createImage(final ImageUploadDTO imageUploadDTO) throws IOException;
+    ImageUploadDTO updateImage(final ImageUploadDTO imageUploadDTO);
+    List<ImageUploadDTO> getAllImages();
+    ImageUploadDTO getImageById(final Long imageId);
+    ImageUploadDTO deleteImage(final Long imageId);
+    void deleteAllImages();
 }

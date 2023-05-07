@@ -22,6 +22,9 @@ public class Animal {
     @Column
     private String name; // poate avea zgarda cu nume, sau cel care l-a pierdut sa zica ca raspunde la numele....
 
+    @Column
+    private String animalInfo;
+
     @Column(nullable = false)
     private String species;
 

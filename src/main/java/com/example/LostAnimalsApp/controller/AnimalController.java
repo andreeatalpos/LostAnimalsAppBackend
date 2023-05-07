@@ -1,16 +1,42 @@
 package com.example.LostAnimalsApp.controller;
 
+import com.example.LostAnimalsApp.dto.AnimalDTO;
+import com.example.LostAnimalsApp.dto.ImageDTO;
+import com.example.LostAnimalsApp.service.AnimalService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/animal")
 public class AnimalController {
 
-    @GetMapping
-    public ResponseEntity<String> sayHello() {
-        return ResponseEntity.ok("Hello from animal controller!!");
+    @Autowired
+    private AnimalService animalService;
+
+    @GetMapping("/{isFound}")
+    public ResponseEntity<List<ImageDTO>> getAnimalsImages(@PathVariable("isFound") final String isFound) {
+        boolean animalIsFound = "true".equals(isFound);
+        try {
+            return ResponseEntity.ok(animalService.getLostOrFoundAnimalsImages(animalIsFound));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
+
+    @PostMapping
+    public ResponseEntity<String> createAnimal(@RequestBody final AnimalDTO animalDTO) {
+        try
+        {
+            animalService.createAnimal(animalDTO);
+            return ResponseEntity.ok("Animal data added successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Animal cannot be created!");
+        }
+    }
+
 }
