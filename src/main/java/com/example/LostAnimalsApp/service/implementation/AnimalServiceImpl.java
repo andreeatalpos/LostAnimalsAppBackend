@@ -1,11 +1,12 @@
 package com.example.LostAnimalsApp.service.implementation;
 
 import com.example.LostAnimalsApp.dto.AnimalDTO;
+import com.example.LostAnimalsApp.dto.AnimalInfoDTO;
 import com.example.LostAnimalsApp.dto.ImageDTO;
-import com.example.LostAnimalsApp.dto.ImageUploadDTO;
 import com.example.LostAnimalsApp.exception.ResourceNotFoundException;
 import com.example.LostAnimalsApp.model.Animal;
 import com.example.LostAnimalsApp.model.Image;
+import com.example.LostAnimalsApp.model.User;
 import com.example.LostAnimalsApp.repository.AnimalRepository;
 import com.example.LostAnimalsApp.repository.ImageRepository;
 import com.example.LostAnimalsApp.repository.UserRepository;
@@ -13,13 +14,14 @@ import com.example.LostAnimalsApp.service.AnimalService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +31,9 @@ public class AnimalServiceImpl implements AnimalService {
     private final ImageRepository imageRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+
+    private final static String IMAGES_FOLDER_PATH = "src/main/resources/images/";
+
 
     @Override
     public AnimalDTO createAnimal(final AnimalDTO animalDTO) {
@@ -88,6 +93,12 @@ public class AnimalServiceImpl implements AnimalService {
                 .collect(Collectors.toList());
     }
 
+    public List<AnimalInfoDTO> getAllAnimalsImages() throws IOException {
+        List<AnimalInfoDTO> imageDTOList = new ArrayList<>();
+        final List<Animal> foundAnimals = animalRepository.findAll();
+        return getImageDTOS(imageDTOList, foundAnimals);
+    }
+
     @Override
     public AnimalDTO getAnimalById(final Long animalId) {
         Animal animal = animalRepository.findById(animalId).orElse(null);
@@ -98,23 +109,65 @@ public class AnimalServiceImpl implements AnimalService {
     }
 
     @Override
-    public List<ImageDTO> getLostOrFoundAnimalsImages(boolean isFound) throws IOException {
-        List<ImageDTO> imageDTOList = new ArrayList<>();
+    public List<AnimalInfoDTO> getLostOrFoundAnimalsImages(final boolean isFound) throws IOException {
+        List<AnimalInfoDTO> imageDTOList = new ArrayList<>();
         final List<Animal> foundAnimals = animalRepository.findAllByIsFound(isFound);
+        return getImageDTOS(imageDTOList, foundAnimals);
+    }
+
+    private List<AnimalInfoDTO> getImageDTOS(final List<AnimalInfoDTO> imageDTOList, final List<Animal> foundAnimals)
+            throws IOException {
         for (Animal animal : foundAnimals) {
+            User user = animal.getUser();
             Image image = animal.getImage();
             if (image != null) {
-                ImageDTO imageDTO = ImageDTO.builder()
-                        .imageId(image.getImageId())
-                        .description(image.getDescription())
+                AnimalInfoDTO animalInfo = AnimalInfoDTO.builder()
+                        .animalInfo(animal.getAnimalInfo())
+                        .email(user.getEmail())
+                        .fullName(user.getFullName())
+                        .phoneNumber(user.getPhoneNumber())
                         .build();
-                byte[] imageData = Files.readAllBytes(Paths.get(image.getFileName()));
+                byte[] imageData = Files.readAllBytes(Paths.get(IMAGES_FOLDER_PATH + image.getFileName()));
 
-                imageDTO.setFile(imageData);
-                imageDTOList.add(imageDTO);
+                animalInfo.setFile(imageData);
+                imageDTOList.add(animalInfo);
             }
         }
         return imageDTOList;
+    }
+
+    @Override
+    public List<ImageDTO> getImagesByUser(final String username) {
+        Optional<User> user = userRepository.findByUsername(username);
+        if (user.isPresent()) {
+            final List<Animal> allAnimals = animalRepository.findAll();
+            return allAnimals.stream()
+                    .filter(animal -> user.get().equals(animal.getUser()))
+                    .map(Animal::getImage)
+                    .map(image -> {
+                        try {
+                            return buildImageDTO(image);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        }
+        return null;
+    }
+
+    private ImageDTO buildImageDTO(final Image image) throws IOException {
+        if (image != null) {
+            ImageDTO imageDTO = ImageDTO.builder()
+                    .imageId(image.getImageId())
+                    .description(image.getDescription())
+                    .build();
+            byte[] imageData = Files.readAllBytes(Paths.get(IMAGES_FOLDER_PATH + image.getFileName()));
+            imageDTO.setFile(imageData);
+            return imageDTO;
+        }
+        return null;
     }
 
     private boolean checkFields(final AnimalDTO animalDTO) {
