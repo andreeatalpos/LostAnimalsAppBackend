@@ -1,4 +1,4 @@
-package com.example.LostAnimalsApp.controller.config;
+package com.example.LostAnimalsApp.security_config;
 
 import com.example.LostAnimalsApp.service.implementation.JwtServiceImpl;
 import jakarta.servlet.FilterChain;

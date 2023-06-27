@@ -17,43 +17,70 @@ import java.util.List;
 @CrossOrigin("*")
 public class AnimalController {
 
-    @Autowired
-    private AnimalService animalService;
+	@Autowired
+	private AnimalService animalService;
 
-    @GetMapping("/{isFound}")
-    public ResponseEntity<List<AnimalInfoDTO>> getAnimalsImages(@PathVariable("isFound") final String isFound) {
-        boolean animalIsFound = "true".equals(isFound);
-        try {
-            return ResponseEntity.ok(animalService.getLostOrFoundAnimalsImages(animalIsFound));
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-    }
+	@GetMapping("/{isFound}")
+	public ResponseEntity<List<AnimalInfoDTO>> getAnimalsImages(@PathVariable("isFound") final String isFound) {
+		boolean animalIsFound = "true".equals(isFound);
+		try {
+			return ResponseEntity.ok(animalService.getLostOrFoundAnimalsImages(animalIsFound));
+		} catch (IOException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-    @GetMapping
-    public ResponseEntity<List<AnimalInfoDTO>> getAllAnimalsImages() {
-        try {
-            return ResponseEntity.ok(animalService.getAllAnimalsImages());
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-    }
+	@GetMapping("/similar/{filename}")
+	public ResponseEntity<List<AnimalInfoDTO>> getSimilarImages(@PathVariable("filename") final String filename) {
+		try {
+			return ResponseEntity.ok(animalService.getSimilarAnimalsImages(filename));
+		} catch (IOException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-    @GetMapping("/pets/{username}")
-    public ResponseEntity<List<ImageDTO>> getUsersAnimals(@PathVariable("username") final String username) {
-        List<ImageDTO> images = animalService.getImagesByUser(username);
-        return ResponseEntity.ok(images);
-    }
+	@GetMapping("/species/{filename}")
+	public ResponseEntity<String> getAnimalSpecies(@PathVariable("filename") final String filename) {
+		return ResponseEntity.ok(animalService.getAnimalSpecies(filename));
+	}
 
-    @PostMapping
-    public ResponseEntity<String> createAnimal(@RequestBody final AnimalDTO animalDTO) {
-        try
-        {
-            animalService.createAnimal(animalDTO);
-            return ResponseEntity.ok("Animal data added successfully!");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Animal cannot be created!");
-        }
-    }
+	@GetMapping
+	public ResponseEntity<List<AnimalInfoDTO>> getAllAnimalsImages() {
+		try {
+			return ResponseEntity.ok(animalService.getAllAnimalsImages());
+		} catch (IOException | InterruptedException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}
+	}
+
+	@GetMapping("/pets/{username}")
+	public ResponseEntity<List<AnimalInfoDTO>> getUsersAnimals(@PathVariable("username") final String username) {
+		final List<AnimalInfoDTO> images = animalService.getImagesByUser(username);
+		return ResponseEntity.ok(images);
+	}
+
+	@PostMapping("/{isCorrectSpecies}")
+	public ResponseEntity<String> createAnimal(@RequestBody final AnimalDTO animalDTO,
+			@PathVariable("isCorrectSpecies") final String isCorrectSpecies) {
+		try {
+			animalService.createAnimal(animalDTO, isCorrectSpecies);
+			return ResponseEntity.ok("Animal data added successfully!");
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Animal cannot be created!");
+		}
+	}
+
+	@DeleteMapping("/{filename}")
+	public ResponseEntity<String> deleteAnimal(@PathVariable("filename") final String filename) {
+		try {
+			return ResponseEntity.ok(animalService.deleteAnimal(filename));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Animal cannot be deleted!");
+		}
+	}
 
 }

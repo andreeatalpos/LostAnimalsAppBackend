@@ -6,6 +6,7 @@ import com.example.LostAnimalsApp.model.Image;
 import com.example.LostAnimalsApp.repository.AnimalRepository;
 import com.example.LostAnimalsApp.repository.ImageRepository;
 import com.example.LostAnimalsApp.service.ImageService;
+import com.example.LostAnimalsApp.util.ImageResizer;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class ImageServiceImpl implements ImageService {
     private final AnimalRepository animalRepository;
     private final static String IMAGES_FOLDER_PATH = "src/main/resources/images";
     private final ModelMapper modelMapper;
+    private final ImageResizer imageResizer;
     @Override
     public String createImage(ImageUploadDTO imageUploadDTO) throws IOException {
         System.out.println(imageUploadDTO.getDescription());
@@ -34,25 +36,33 @@ public class ImageServiceImpl implements ImageService {
                     .uploadedAt(LocalDateTime.now())
                     .description(imageUploadDTO.getDescription())
                     .build();
-            // define the folder path where the image will be saved
+            // Define the folder path where the image will be saved
             String randomString = UUID.randomUUID().toString().substring(0, 8);
             String fileName = "animal_" + randomString + ".jpeg";
             imageToCreate.setFileName(fileName);
-            // create a File object with the folder path and file name
+
+            // Create a File object with the folder path and file name
             File folder = new File(IMAGES_FOLDER_PATH);
             if (!folder.exists()) {
                 folder.mkdirs();
             }
 
             File imageFile = new File(folder, fileName);
-            // write the file content to the File object
+
+            // Resize the image
+            byte[] resizedImageData = imageResizer.resizeImage(imageUploadDTO.getFile().getBytes(), 224, 224);
+
+            // Write the resized image data to the File object
             FileOutputStream outputStream = new FileOutputStream(imageFile);
-            outputStream.write(imageUploadDTO.getFile().getBytes());
+            outputStream.write(resizedImageData);
             outputStream.flush();
             outputStream.close();
+
             imageRepository.save(imageToCreate);
             return fileName;
-        } else throw new ResourceNotFoundException("The image couldn't be created!"); // todo: create more exceptions
+        } else {
+            throw new ResourceNotFoundException("The image couldn't be created!"); // todo: create more exceptions
+        }
     }
 
     @Override

@@ -88,27 +88,19 @@ public class UserServiceImpl implements UserService {
 
     private boolean checkFields(AuthDTO user) {
         if (user.getUsername() == null || user.getUsername().isBlank()) {
-            System.out.println("username");
             return false;
         }
         if (user.getEmail() == null || user.getEmail().isBlank() ||
                 !validate(user.getEmail(), VALID_EMAIL_ADDRESS_REGEX)) {
-            System.out.println("email");
             return false;
         }
         if (user.getPassword() == null || user.getPassword().isBlank() ||
                 !user.getPassword().equals(user.getConfirmedPassword()) || !validate(user.getPassword(), VALID_PASSWORD_REGEX)) {
-            System.out.println("password");
             return false;
         }
         if (user.getPhoneNumber() == null || !validate(user.getPhoneNumber().toString(), VALID_RO_PHONE_NUMBER)) {
-            System.out.println("number");
-
             return false;
         }
-//        if (user.getRole() == null || !Arrays.stream(Role.values()).toList().contains(user.getRole())) {
-//            return false;
-//        }
         return true;
     }
 }

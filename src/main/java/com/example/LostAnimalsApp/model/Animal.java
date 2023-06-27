@@ -31,9 +31,6 @@ public class Animal {
     @Column(nullable = false)
     private String breed;
 
-    @Column(nullable = false)
-    private String color;
-
     @Column
     private Integer age; // varsta exacta de catre proprietar, sau aprox de la cel care il gaseste
 
