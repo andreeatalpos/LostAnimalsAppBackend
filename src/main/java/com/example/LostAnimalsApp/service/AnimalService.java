@@ -11,10 +11,6 @@ import java.util.List;
 public interface AnimalService {
     AnimalDTO createAnimal(final AnimalDTO animalDTO, final String isCorrectSpecies) throws IOException, InterruptedException;
     String getAnimalSpecies(final String filename);
-    AnimalDTO updateAnimal(final AnimalDTO animalDTO) throws IOException, InterruptedException;
-    AnimalDTO deleteAnimal(final Long animalId);
-    List<AnimalDTO> getAllAnimals();
-    AnimalDTO getAnimalById(final Long animalId);
     List<AnimalInfoDTO> getLostOrFoundAnimalsImages(boolean isFound) throws IOException, InterruptedException;
 
     List<AnimalInfoDTO> getSimilarAnimalsImages(final String filename) throws IOException, InterruptedException;

@@ -1,6 +1,5 @@
 package com.example.LostAnimalsApp.util;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.tensorflow.SavedModelBundle;
 import org.tensorflow.Session;
@@ -20,32 +19,22 @@ public class CatBreedsClassifier {
 
 	public String makePrediction(final String filename) {
 		try {
-			byte[] imageData = Files.readAllBytes(Path.of(IMAGES_FOLDER_PATH + filename));
-			// Load the saved model
-			SavedModelBundle model = SavedModelBundle.load("D:/University_things/An4/Licenta/Licenta/NeuralNetwork/LostAnimalsCNN/models/cats-breeds-transfer-learning100", "serve");
-			// Perform inference
-			Session.Runner runner = model.session().runner();
+			final byte[] imageData = Files.readAllBytes(Path.of(IMAGES_FOLDER_PATH + filename));
+			final SavedModelBundle model = SavedModelBundle.load("D:/University_things/An4/Licenta/Licenta/NeuralNetwork/LostAnimalsCNN/models/cats-breeds-transfer-learning100", "serve");
+			final Session.Runner runner = model.session().runner();
 			runner.feed("serving_default_input_1:0", preprocessInput(imageData));
 			runner.fetch("StatefulPartitionedCall:0");
 
 			List<Tensor<?>> outputTensors = runner.run();
 			if (outputTensors != null && outputTensors.size() > 0) {
 				Tensor<?> predictions = outputTensors.get(0);
-
-				// Convert the TensorFlow Tensor to float[][]
 				float[][] predictionsArray = new float[1][5];
 				predictions.copyTo(predictionsArray);
-
-				// Close the output tensors
 				for (Tensor<?> tensor : outputTensors) {
 					tensor.close();
 				}
-				// Process the predictions
 				return processPredictions(predictionsArray);
 			} else {
-				// Handle the case when no output tensors are returned
-				// Display an error message or take appropriate action
-				System.out.println("No output tensors received.");
 				return null;
 			}
 		} catch (Exception e) {
@@ -56,19 +45,14 @@ public class CatBreedsClassifier {
 
 
 	private Tensor<Float> preprocessInput(final byte[] imageData) throws IOException {
-		// Read the image from the byte array
-		ByteArrayInputStream inputStream = new ByteArrayInputStream(imageData);
-		BufferedImage image = ImageIO.read(inputStream);
-
-		// Extract the width, height, and number of channels from the image
+		final ByteArrayInputStream inputStream = new ByteArrayInputStream(imageData);
+		final BufferedImage image = ImageIO.read(inputStream);
 		int width = image.getWidth();
 		int height = image.getHeight();
 		int channels = image.getRaster().getNumBands();
 
-		// Convert the BufferedImage to a TensorFlow Tensor
 		float[][][][] preprocessedData = new float[1][height][width][channels];
 
-		// Iterate over each pixel and extract the pixel values
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
 				int[] pixel = image.getRaster().getPixel(j, i, new int[channels]);
@@ -82,9 +66,8 @@ public class CatBreedsClassifier {
 	}
 
 
-	private String processPredictions(float[][] predictions) {
-		String[] classes = {"Bombay", "British shorthair", "Persian cat", "Siamese cat", "Sphynx"}; // Update with your class labels
-
+	private String processPredictions(final float[][] predictions) {
+		final String[] classes = {"Bombay", "British shorthair", "Persian cat", "Siamese cat", "Sphynx"};
 		int maxIndex = 0;
 		float maxPrediction = predictions[0][0];
 
@@ -94,7 +77,6 @@ public class CatBreedsClassifier {
 				maxIndex = i;
 			}
 		}
-
 		return classes[maxIndex];
 	}
 

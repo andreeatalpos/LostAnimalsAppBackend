@@ -23,7 +23,7 @@ public class AuthenticationController {
             AuthenticationResponse response = authService.register(authDTO);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid input data!");
         }
     }
 

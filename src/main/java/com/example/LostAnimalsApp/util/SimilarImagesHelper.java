@@ -1,8 +1,9 @@
 package com.example.LostAnimalsApp.util;
 
 import com.example.LostAnimalsApp.model.Animal;
+import com.example.LostAnimalsApp.model.Image;
 import com.example.LostAnimalsApp.repository.AnimalRepository;
-import com.example.LostAnimalsApp.service.AnimalService;
+import com.example.LostAnimalsApp.repository.ImageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,38 +24,37 @@ import java.util.*;
 @RequiredArgsConstructor
 public class SimilarImagesHelper {
 	private final static String IMAGES_FOLDER_PATH = "src/main/resources/images/";
-
-	@Autowired
-	private final AnimalClassifier animalClassifier;
-
 	@Autowired
 	private final AnimalRepository animalRepository;
+
+	@Autowired
+	private final ImageRepository imageRepository;
 
 
 	public List<String> findSimilarImages(final String inputFilename) {
 		try {
-			// Load the saved model
-			SavedModelBundle model = SavedModelBundle.load("D:/University_things/An4/Licenta/Licenta/NeuralNetwork/LostAnimalsCNN/models/cats-breeds-transfer-learning", "serve");
-			SavedModelBundle model2 = SavedModelBundle.load("D:/University_things/An4/Licenta/Licenta/NeuralNetwork/LostAnimalsCNN/models/cats-dogs-classifier111", "serve");
-
-			// Read and preprocess the input image
+			final SavedModelBundle modelCats = SavedModelBundle.load("D:/University_things/An4/Licenta/Licenta/NeuralNetwork/LostAnimalsCNN/models/cats-breeds-transfer-learning", "serve");
+			final SavedModelBundle modelDogs = SavedModelBundle.load("D:/University_things/An4/Licenta/Licenta/NeuralNetwork/LostAnimalsCNN/models/dogs-breeds-transfer-learning100", "serve");
 			byte[] inputImageData = Files.readAllBytes(Path.of(IMAGES_FOLDER_PATH + inputFilename));
 			Tensor<Float> inputTensor = preprocessInput(inputImageData);
-
-			// Compute the feature vector for the input image
-			float[][] inputFeatures = runInference(model, inputTensor);
-			float[][] inputFeatures2 = runInference2(model2, inputTensor);
-			// Get all image files from the dataset directory
-			File datasetDir = new File(IMAGES_FOLDER_PATH);
-			File[] imageFiles = datasetDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".jpg")
-					|| name.toLowerCase().endsWith(".jpeg")
-					|| name.toLowerCase().endsWith(".png")
-					|| name.toLowerCase().endsWith(".gif")
-					|| name.toLowerCase().endsWith(".bmp"));
-
-			// Calculate the similarity between the input image and dataset images
-			List<SimilarityPair> similarityPairs = new ArrayList<>();
 			final String species = getSpeciesByFilename(inputFilename);
+			final float[][] inputFeatures = "cat".equals(species) ? runInferenceCats(modelCats, inputTensor) :
+					runInferenceDogs(modelDogs, inputTensor);
+			final File datasetDir = new File(IMAGES_FOLDER_PATH);
+			final List<String> fileNames = imageRepository.findAll()
+					.stream()
+					.map(Image::getFileName)
+					.toList();
+			final File[] imageFiles = datasetDir.listFiles((dir, name) -> {
+				String lowercaseName = name.toLowerCase();
+				return (lowercaseName.endsWith(".jpg")
+						|| lowercaseName.endsWith(".jpeg")
+						|| lowercaseName.endsWith(".png")
+						|| lowercaseName.endsWith(".gif")
+						|| lowercaseName.endsWith(".bmp"))
+						&& fileNames.contains(lowercaseName);
+			});
+			final List<SimilarityPair> similarityPairs = new ArrayList<>();
 			final Optional<Animal> searchedAnimal = animalRepository.findAnimalByImageFileName(inputFilename);
 
 			for (File imageFile : imageFiles) {
@@ -62,31 +62,26 @@ public class SimilarImagesHelper {
 				Optional<Animal> currentAnimal = animalRepository.findAnimalByImageFileName(imageFile.getName());
 				if (getSpeciesByFilename(imageFile.getName()).equals(species)
 						&& searchedAnimal.isPresent() && currentAnimal.isPresent()
-						&& searchedAnimal.get().getIsFound() != currentAnimal.get().getIsFound()) {
-					Tensor<Float> tensor = preprocessInput(imageData);
+						&& searchedAnimal.get().getIsFound() != currentAnimal.get().getIsFound()
+						&& !Objects.equals(searchedAnimal.get().getUser().getUsername(),
+						currentAnimal.get().getUser().getUsername())) {
+					final Tensor<Float> tensor = preprocessInput(imageData);
 
-					float[][] features = runInference(model, tensor);
-
-					// Calculate the similarity between the input features and dataset features
+					float[][] features = "cat".equals(species) ? runInferenceCats(modelCats, tensor) :
+							runInferenceDogs(modelDogs, tensor);
 					double similarity = cosineSimilarity(inputFeatures[0], features[0]);
 
 					similarityPairs.add(new SimilarityPair(imageFile.getName(), similarity));
 				}
 			}
-
-			// Sort the similarity pairs in descending order
 			similarityPairs.sort(Collections.reverseOrder());
-
-			// Get the filenames of the most similar images
-			List<String> similarImages = new ArrayList<>();
+			final List<String> similarImages = new ArrayList<>();
 			for (SimilarityPair pair : similarityPairs) {
 				if (!Objects.equals(pair.getFilename(), inputFilename)) {
-
 					similarImages.add(pair.getFilename());
 				}
 			}
-			// Close the model and input tensor
-			model.close();
+			modelCats.close();
 			inputTensor.close();
 
 			return similarImages;
@@ -97,90 +92,67 @@ public class SimilarImagesHelper {
 		return Collections.emptyList();
 	}
 
-	private float[][] runInference(SavedModelBundle model, Tensor<Float> inputTensor) {
+	private float[][] runInferenceCats(final SavedModelBundle model, final Tensor<Float> inputTensor) {
 		// Perform inference
-		Session.Runner runner = model.session().runner();
+		final Session.Runner runner = model.session().runner();
 		runner.feed("serving_default_input_7:0", inputTensor);
 		runner.fetch("StatefulPartitionedCall:0");
 
 		List<Tensor<?>> outputTensors = runner.run();
 		if (outputTensors != null && outputTensors.size() > 0) {
-			Tensor<?> predictions = outputTensors.get(0);
-
-			// Convert the TensorFlow Tensor to float[][]
+			final Tensor<?> predictions = outputTensors.get(0);
 			float[][] predictionsArray = new float[1][5];
 			predictions.copyTo(predictionsArray);
+			for (Tensor<?> tensor : outputTensors) {
+				tensor.close();
+			}
+			return predictionsArray;
+		} else {
+			System.out.println("No output tensors received.");
+			return new float[0][0];
+		}
+	}
 
-			// Close the output tensors
+	private float[][] runInferenceDogs(final SavedModelBundle model, final Tensor<Float> inputTensor) {
+		// Perform inference
+		Session.Runner runner = model.session().runner();
+		runner.feed("serving_default_input_1:0", inputTensor);
+		runner.fetch("StatefulPartitionedCall:0");
+
+		List<Tensor<?>> outputTensors = runner.run();
+		if (outputTensors != null && outputTensors.size() > 0) {
+			final Tensor<?> predictions = outputTensors.get(0);
+			float[][] predictionsArray = new float[1][6];
+			predictions.copyTo(predictionsArray);
 			for (Tensor<?> tensor : outputTensors) {
 				tensor.close();
 			}
 
 			return predictionsArray;
 		} else {
-			// Handle the case when no output tensors are returned
-			// Display an error message or take appropriate action
 			System.out.println("No output tensors received.");
-
 			return new float[0][0];
 		}
 	}
 
 	public String getSpeciesByFilename(final String filename) {
-		Optional<Animal> animal = animalRepository.findAnimalByImageFileName(filename);
+		final Optional<Animal> animal = animalRepository.findAnimalByImageFileName(filename);
 		return animal
 				.map(Animal::getSpecies)
 				.orElse(null);
 	}
-
-	private float[][] runInference2(SavedModelBundle model, Tensor<Float> inputTensor) {
-		// Perform inference
-		Session.Runner runner = model.session().runner();
-		runner.feed("serving_default_conv2d_input", inputTensor);
-		runner.fetch("StatefulPartitionedCall");
-
-		List<Tensor<?>> outputTensors = runner.run();
-		if (outputTensors != null && outputTensors.size() > 0) {
-			Tensor<?> predictions = outputTensors.get(0);
-
-			// Convert the TensorFlow Tensor to float[][]
-			float[][] predictionsArray = new float[1][1];
-			predictions.copyTo(predictionsArray);
-
-			// Close the output tensors
-			for (Tensor<?> tensor : outputTensors) {
-				tensor.close();
-			}
-
-			return predictionsArray;
-		} else {
-			// Handle the case when no output tensors are returned
-			// Display an error message or take appropriate action
-			System.out.println("No output tensors received.");
-
-			return new float[0][0];
-		}
-	}
-
 	private Tensor<Float> preprocessInput(final byte[] imageData) throws IOException {
-		// Read the image from the byte array
 		ByteArrayInputStream inputStream = new ByteArrayInputStream(imageData);
 		BufferedImage image = ImageIO.read(inputStream);
-
-		// Extract the width, height, and number of channels from the image
 		int width = image.getWidth();
 		int height = image.getHeight();
 		int channels = image.getRaster().getNumBands();
-
-		// Convert the BufferedImage to a TensorFlow Tensor
 		float[][][][] preprocessedData = new float[1][height][width][channels];
-
-		// Iterate over each pixel and extract the pixel values
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
 				int[] pixel = image.getRaster().getPixel(j, i, new int[channels]);
 				for (int k = 0; k < channels; k++) {
-					preprocessedData[0][i][j][k] = pixel[k] & 0xFF;
+					preprocessedData[0][i][j][k] = normalizePixelValue(pixel[k] & 0xFF);
 				}
 			}
 		}
@@ -188,7 +160,7 @@ public class SimilarImagesHelper {
 		return Tensor.create(preprocessedData, Float.class);
 	}
 
-	private double cosineSimilarity(float[] vectorA, float[] vectorB) {
+	private double cosineSimilarity(final float[] vectorA, final float[] vectorB) { // similitudinea intre doi vectori cosineSimilarity(A, B) = (A ⋅ B) / (||A|| ⋅ ||B||)
 		double dotProduct = 0.0;
 		double normA = 0.0;
 		double normB = 0.0;
@@ -209,6 +181,11 @@ public class SimilarImagesHelper {
 		return dotProduct / (normA * normB);
 	}
 
+	private float normalizePixelValue(final int pixelValue) {
+		return pixelValue / 255.0f;
+	}
+
+
 	private static class SimilarityPair implements Comparable<SimilarityPair> {
 		private String filename;
 		private double similarity;
@@ -227,7 +204,7 @@ public class SimilarImagesHelper {
 		}
 
 		@Override
-		public int compareTo(SimilarityPair other) {
+		public int compareTo(final SimilarityPair other) {
 			return Double.compare(similarity, other.getSimilarity());
 		}
 	}

@@ -3,8 +3,6 @@ package com.example.LostAnimalsApp.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
-
 @Getter
 @Setter
 @AllArgsConstructor
@@ -20,7 +18,7 @@ public class Animal {
     private Long animalId;
 
     @Column
-    private String name; // poate avea zgarda cu nume, sau cel care l-a pierdut sa zica ca raspunde la numele....
+    private String name;
 
     @Column
     private String animalInfo;
@@ -32,16 +30,16 @@ public class Animal {
     private String breed;
 
     @Column
-    private Integer age; // varsta exacta de catre proprietar, sau aprox de la cel care il gaseste
+    private Integer age;
 
     @Column(nullable = false)
-    private Boolean isFound; // true if animal is found by someone, false if it's lost
+    private Boolean isFound;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name="user_id")
     private User user;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name="image_id")
     private Image image;
 

@@ -2,7 +2,6 @@ package com.example.LostAnimalsApp.service.implementation;
 
 import com.example.LostAnimalsApp.dto.AnimalDTO;
 import com.example.LostAnimalsApp.dto.AnimalInfoDTO;
-import com.example.LostAnimalsApp.dto.ImageDTO;
 import com.example.LostAnimalsApp.exception.ResourceNotFoundException;
 import com.example.LostAnimalsApp.model.Animal;
 import com.example.LostAnimalsApp.model.Image;
@@ -71,60 +70,10 @@ public class AnimalServiceImpl implements AnimalService {
         return animalClassifier.makePrediction(filename);
     }
 
-    @Override
-    public AnimalDTO updateAnimal(final AnimalDTO animalDTO) {
-        Animal animalToUpdate = animalRepository.findAnimalByImageFileName(animalDTO.getFileName()).orElse(null);
-        if (animalToUpdate != null && checkFields(animalDTO)) {
-            animalToUpdate = Animal.builder()
-                    .name(animalDTO.getAnimalName())
-                    .animalInfo(animalToUpdate.getAnimalInfo())
-                    .isFound(animalDTO.getIsFound())
-                    .image(imageRepository.findImageByFileName(animalDTO.getFileName()).orElse(null))
-                    .user(userRepository.findByUsername(animalDTO.getUsername()).orElse(null))
-                    .age(animalDTO.getAge())
-                    .build();
-            final StringBuilder breed = new StringBuilder();
-            final StringBuilder species = new StringBuilder();
-            getPredictedAnimalInfo(animalDTO.getFileName(), species, breed, true);
-            animalToUpdate.setBreed(breed.toString());
-            animalToUpdate.setSpecies(species.toString());
-            animalRepository.save(animalToUpdate);
-            return modelMapper.map(animalToUpdate, AnimalDTO.class);
-        } else throw new ResourceNotFoundException("The animal cannot be updated!");
-    }
-
-    @Override
-    public AnimalDTO deleteAnimal(final Long animalId) {
-        Animal animal = animalRepository.findById(animalId).orElse(null);
-        if (animal == null) {
-            throw new ResourceNotFoundException("The animal with the provided ID doesn't exists!");
-        }
-        animalRepository.delete(animal);
-        return modelMapper.map(animal, AnimalDTO.class); // TODO : rethink the delete param; should I send the id?? <-> animalDTO has id
-    }
-
-    @Override
-    public List<AnimalDTO> getAllAnimals() {
-        return animalRepository
-                .findAll()
-                .stream()
-                .map(animal -> modelMapper.map(animal, AnimalDTO.class))
-                .collect(Collectors.toList());
-    }
-
     public List<AnimalInfoDTO> getAllAnimalsImages() throws IOException{
         List<AnimalInfoDTO> imageDTOList = new ArrayList<>();
         final List<Animal> foundAnimals = animalRepository.findAll();
         return getImageDTOS(imageDTOList, foundAnimals);
-    }
-
-    @Override
-    public AnimalDTO getAnimalById(final Long animalId) {
-        Animal animal = animalRepository.findById(animalId).orElse(null);
-        if (animal == null) {
-            throw new ResourceNotFoundException("The animal with the provided ID doesn't exists!");
-        }
-        return modelMapper.map(animal, AnimalDTO.class);
     }
 
     @Override
@@ -148,10 +97,10 @@ public class AnimalServiceImpl implements AnimalService {
     private List<AnimalInfoDTO> getImageDTOS(final List<AnimalInfoDTO> imageDTOList, final List<Animal> foundAnimals)
             throws IOException {
         for (Animal animal : foundAnimals) {
-            User user = animal.getUser();
-            Image image = animal.getImage();
+            final User user = animal.getUser();
+            final Image image = animal.getImage();
             if (image != null) {
-                AnimalInfoDTO animalInfo = AnimalInfoDTO.builder()
+                final AnimalInfoDTO animalInfo = AnimalInfoDTO.builder()
                         .animalInfo(animal.getAnimalInfo())
                         .email(user.getEmail())
                         .fullName(user.getFullName())
@@ -161,7 +110,7 @@ public class AnimalServiceImpl implements AnimalService {
                         .isFound(animal.getIsFound())
                         .filename(image.getFileName())
                         .build();
-                byte[] imageData = Files.readAllBytes(Paths.get(IMAGES_FOLDER_PATH + image.getFileName()));
+                final byte[] imageData = Files.readAllBytes(Paths.get(IMAGES_FOLDER_PATH + image.getFileName()));
                 animalInfo.setFile(imageData);
                 imageDTOList.add(animalInfo);
             }
@@ -169,7 +118,8 @@ public class AnimalServiceImpl implements AnimalService {
         return imageDTOList;
     }
 
-    private void getPredictedAnimalInfo(final String fileName, final StringBuilder species, final StringBuilder breed, final Boolean isCorrectSpecies) {
+    private void getPredictedAnimalInfo(final String fileName, final StringBuilder species, final StringBuilder breed,
+            final Boolean isCorrectSpecies) {
         species.append(animalClassifier.makePrediction(fileName));
         if (isCorrectSpecies) {
             if (species.toString().equals("cat")) {
@@ -193,7 +143,7 @@ public class AnimalServiceImpl implements AnimalService {
 
     @Override
     public List<AnimalInfoDTO> getImagesByUser(final String username) {
-        Optional<User> user = userRepository.findByUsername(username);
+        final Optional<User> user = userRepository.findByUsername(username);
         if (user.isPresent()) {
             final List<Animal> allAnimals = animalRepository.findAll();
             return allAnimals.stream()
@@ -213,7 +163,7 @@ public class AnimalServiceImpl implements AnimalService {
 
     @Override
     public String deleteAnimal(final String filename) {
-        Optional<Animal> animalToDelete = animalRepository.findAnimalByImageFileName(filename);
+        final Optional<Animal> animalToDelete = animalRepository.findAnimalByImageFileName(filename);
         if (animalToDelete.isPresent()) {
             animalRepository.deleteById(animalToDelete.get().getAnimalId());
         } else {
@@ -222,11 +172,11 @@ public class AnimalServiceImpl implements AnimalService {
         return animalToDelete.get().getAnimalId().toString();
     }
 
-    private AnimalInfoDTO buildAnimalInfoDTO(Animal animal) throws IOException {
-        User user = animal.getUser();
-        Image image = animal.getImage();
+    private AnimalInfoDTO buildAnimalInfoDTO(final Animal animal) throws IOException {
+        final User user = animal.getUser();
+        final Image image = animal.getImage();
         if (image != null) {
-            AnimalInfoDTO animalInfo = AnimalInfoDTO.builder()
+            final AnimalInfoDTO animalInfo = AnimalInfoDTO.builder()
                     .animalInfo(animal.getAnimalInfo())
                     .email(user.getEmail())
                     .fullName(user.getFullName())
@@ -236,22 +186,9 @@ public class AnimalServiceImpl implements AnimalService {
                     .isFound(animal.getIsFound())
                     .filename(image.getFileName())
                     .build();
-            byte[] imageData = Files.readAllBytes(Paths.get(IMAGES_FOLDER_PATH + image.getFileName()));
+            final byte[] imageData = Files.readAllBytes(Paths.get(IMAGES_FOLDER_PATH + image.getFileName()));
             animalInfo.setFile(imageData);
             return animalInfo;
-        }
-        return null;
-    }
-
-    private ImageDTO buildImageDTO(final Image image) throws IOException {
-        if (image != null) {
-            ImageDTO imageDTO = ImageDTO.builder()
-                    .imageId(image.getImageId())
-                    .description(image.getDescription())
-                    .build();
-            byte[] imageData = Files.readAllBytes(Paths.get(IMAGES_FOLDER_PATH + image.getFileName()));
-            imageDTO.setFile(imageData);
-            return imageDTO;
         }
         return null;
     }

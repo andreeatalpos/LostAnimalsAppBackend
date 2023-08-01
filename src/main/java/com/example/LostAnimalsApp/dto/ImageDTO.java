@@ -1,7 +1,6 @@
 package com.example.LostAnimalsApp.dto;
 
 import lombok.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @Builder
 @AllArgsConstructor

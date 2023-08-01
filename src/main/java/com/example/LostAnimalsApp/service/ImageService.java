@@ -7,9 +7,8 @@ import java.util.List;
 
 public interface ImageService {
     String createImage(final ImageUploadDTO imageUploadDTO) throws IOException;
-    ImageUploadDTO updateImage(final ImageUploadDTO imageUploadDTO);
     List<ImageUploadDTO> getAllImages();
-    ImageUploadDTO getImageById(final Long imageId);
-    ImageUploadDTO deleteImage(final Long imageId);
     void deleteAllImages();
+
+    String deleteImage(final String fileName);
 }

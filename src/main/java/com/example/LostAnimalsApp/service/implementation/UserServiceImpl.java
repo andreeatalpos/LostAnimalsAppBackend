@@ -52,37 +52,16 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDTO getUserByUsername(final String username) {
-        Optional<User> user = userRepository.findByUsername(username);
+        final Optional<User> user = userRepository.findByUsername(username);
         if (user.isEmpty()) {
             throw new ResourceNotFoundException(User.class.getSimpleName() + " with username " + username);
         }
         return modelMapper.map(user, UserDTO.class);
     }
 
-    @Override
-    @Transactional
-    public UserDTO updateUser(final AuthDTO user) {
-        User userToUpdate = userRepository.findByUsername(user.getUsername()).orElse(null);
-        if (userToUpdate == null) {
-            throw new ResourceNotFoundException(User.class.getSimpleName() + " with username " + user.getUsername());
-        }
-        if (checkFields(user)) {
-            userToUpdate = User.builder()
-                    .username(user.getUsername())
-                    .fullName(user.getFullName())
-                    .email(user.getEmail())
-                    .phoneNumber(user.getPhoneNumber())
-                    .password(passwordEncoder.encode(user.getPassword()))
-                    .role(Role.USER)
-                    .build();
-            userRepository.save(userToUpdate);
-            return modelMapper.map(userToUpdate, UserDTO.class);
-        } else throw new ResourceNotFoundException("User cannot be updated!");
-    }
-
 
     private static boolean validate(final String stringToValidate, final Pattern pattern) {
-        Matcher matcher = pattern.matcher(stringToValidate);
+        final Matcher matcher = pattern.matcher(stringToValidate);
         return matcher.matches();
     }
 

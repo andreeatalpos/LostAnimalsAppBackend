@@ -16,15 +16,5 @@ public class CustomException extends RuntimeException {
         this.status = status;
     }
 
-    public String getResource() {
-        return resource;
-    }
 
-    public HttpStatus getStatus() {
-        return status;
-    }
-
-    public List<String> getValidationErrors() {
-        return validationErrors;
-    }
 }

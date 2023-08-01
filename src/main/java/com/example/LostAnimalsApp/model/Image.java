@@ -2,11 +2,6 @@ package com.example.LostAnimalsApp.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -25,13 +20,7 @@ public class Image {
     @Column(nullable = false, unique = true)
     private String fileName;
 
-    @Column(nullable = false)
-    private LocalDateTime uploadedAt;
-
     @Column
     private String description;
-
-    @Transient
-    private MultipartFile file;
 
 }

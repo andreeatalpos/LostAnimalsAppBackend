@@ -2,8 +2,6 @@ package com.example.LostAnimalsApp.controller;
 
 import com.example.LostAnimalsApp.dto.ImageUploadDTO;
 import com.example.LostAnimalsApp.service.ImageService;
-import com.example.LostAnimalsApp.util.SimilarImagesHelper;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +17,6 @@ public class ImageController {
 
 	@Autowired
 	private ImageService imageService;
-
-//	@Autowired
-//	private SimilarImagesHelper similarImagesHelper;
 
 	@PostMapping("/upload")
 	public ResponseEntity<String> uploadImage(@ModelAttribute ImageUploadDTO imageUploadDTO) {
@@ -44,8 +39,13 @@ public class ImageController {
 		return ResponseEntity.ok("Images deleted successfully");
 	}
 
-//	@GetMapping("/similar/{filename}")
-//	public ResponseEntity<List<String>> getSimilarImages(@PathVariable("filename") final String filename) {
-//		return ResponseEntity.ok(similarImagesHelper.findSimilarImages(filename));
-//	}
+	@DeleteMapping("/{filename}")
+	public ResponseEntity<String> deleteImageByFilename(@PathVariable("filename") final String filename) {
+		try {
+			return ResponseEntity.ok(imageService.deleteImage(filename));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete image");
+		}
+	}
 }

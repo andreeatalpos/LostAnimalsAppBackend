@@ -2,7 +2,6 @@ package com.example.LostAnimalsApp.controller;
 
 import com.example.LostAnimalsApp.dto.AnimalDTO;
 import com.example.LostAnimalsApp.dto.AnimalInfoDTO;
-import com.example.LostAnimalsApp.dto.ImageDTO;
 import com.example.LostAnimalsApp.service.AnimalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
